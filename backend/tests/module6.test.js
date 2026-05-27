@@ -82,14 +82,35 @@ describe('Module 6 — Messagerie', () => {
   });
 
   describe('GET /api/messages/unread-count', () => {
-    test('Count non lus correct avant lecture', async () => {
+    test('Count non lus est un nombre >= 0', async () => {
       const res = await request(app)
         .get('/api/messages/unread-count')
         .set('Authorization', `Bearer ${tokenNkomo}`);
 
       expect(res.status).toBe(200);
       expect(typeof res.body.count).toBe('number');
-      expect(res.body.count).toBeGreaterThanOrEqual(1); // au moins 1 non lu
+      expect(res.body.count).toBeGreaterThanOrEqual(0);
+    });
+
+    test('Envoyer un message augmente le count du destinataire', async () => {
+      // Compter avant
+      const before = await request(app)
+        .get('/api/messages/unread-count')
+        .set('Authorization', `Bearer ${tokenProviseur}`);
+      const countBefore = before.body.count;
+
+      // Envoyer un message au proviseur
+      await request(app)
+        .post('/api/messages')
+        .set('Authorization', `Bearer ${tokenNkomo}`)
+        .send({ destinataire_id: proviseurId, objet: 'Test count', corps: 'Test.' });
+
+      // Compter après
+      const after = await request(app)
+        .get('/api/messages/unread-count')
+        .set('Authorization', `Bearer ${tokenProviseur}`);
+
+      expect(after.body.count).toBe(countBefore + 1);
     });
   });
 
