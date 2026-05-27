@@ -18,9 +18,6 @@ module.exports = {
   // Fichier de setup chargé avant chaque suite
   setupFiles: ['./tests/setup.js'],
 
-  // Exécution séquentielle (évite les conflits de pool DB)
-  runInBand: true,
-
   // Forcer la sortie après les tests
   forceExit: true,
 
@@ -51,21 +48,4 @@ module.exports = {
   ],
 
   coverageDirectory: 'coverage',
-
-  // ── Projets séparés : unit vs integration ───────────────────
-  projects: [
-    {
-      displayName: 'unit',
-      testMatch: ['**/tests/unit/**/*.test.js'],
-      testEnvironment: 'node',
-      setupFiles: ['./tests/setup.js'],
-    },
-    {
-      displayName: 'integration',
-      testMatch: ['**/tests/module*.test.js'],
-      testEnvironment: 'node',
-      setupFiles: ['./tests/setup.js'],
-      testTimeout: 30000,
-    },
-  ],
 };
