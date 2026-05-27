@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 require('dotenv').config();
 
@@ -11,23 +11,10 @@ const config = require('./config/env');
 const { testConnection } = require('./config/db');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
-// ── Import des routeurs ──────────────────────────────────────
 const authRouter = require('./modules/auth/auth.routes');
-const etablissementsRouter = require('./modules/etablissements/etablissements.routes');
-const classesRouter = require('./modules/classes/classes.routes');
-const notesRouter = require('./modules/notes/notes.routes');
-const evaluationsRouter = require('./modules/notes/evaluations.routes');
-const absencesRouter = require('./modules/absences/absences.routes');
-const appreciationsRouter = require('./modules/appreciations/appreciations.routes');
-const messagesRouter = require('./modules/messagerie/messages.routes');
-const profileRouter = require('./modules/profile/profile.routes');
-const adminRouter = require('./modules/admin/admin.routes');
-const dashboardRouter = require('./modules/dashboard/dashboard.routes');
-const utilisateursRouter = require('./modules/utilisateurs/utilisateurs.routes');
 
 const app = express();
 
-// ── Middlewares globaux ──────────────────────────────────────
 app.use(helmet());
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -41,7 +28,6 @@ if (config.nodeEnv !== 'test') {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// ── Route de santé ───────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
@@ -51,25 +37,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ── Routes API ───────────────────────────────────────────────
 app.use('/api/auth', authRouter);
-app.use('/api/etablissements', etablissementsRouter);
-app.use('/api/classes', classesRouter);
-app.use('/api/notes', notesRouter);
-app.use('/api/evaluations', evaluationsRouter);
-app.use('/api/absences', absencesRouter);
-app.use('/api/appreciations', appreciationsRouter);
-app.use('/api/messages', messagesRouter);
-app.use('/api/profile', profileRouter);
-app.use('/api/admin', adminRouter);
-app.use('/api/dashboard', dashboardRouter);
-app.use('/api/utilisateurs', utilisateursRouter);
 
-// ── 404 & Gestion d'erreurs ──────────────────────────────────
 app.use(notFound);
 app.use(errorHandler);
 
-// ── Démarrage du serveur ─────────────────────────────────────
 if (require.main === module) {
   (async () => {
     try {
