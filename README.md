@@ -27,14 +27,15 @@ edusmart-cm-teacher-portal/
 - **Validation** : `express-validator`
 - **Sécurité** : `helmet`, `cors`
 - **Logging** : `morgan`
-- **Tests** : Jest + Supertest
+- **Tests** : Jest + Supertest — **93 tests, 100% vert**
 
 ### Frontend
-- **Framework** : React.js + React Router DOM
+- **Framework** : React.js 19 + Vite
+- **Routing** : React Router DOM v6
 - **HTTP** : Axios
 - **State/Cache** : @tanstack/react-query
 - **Formulaires** : react-hook-form
-- **Build** : Vite
+- **Design** : CSS custom dark theme — pixel-perfect sur la maquette
 
 ---
 
@@ -50,6 +51,7 @@ edusmart-cm-teacher-portal/
 ```bash
 cd backend
 npm install
+
 # Configurer les variables d'environnement
 cp .env.example .env
 # Éditer .env avec vos valeurs
@@ -84,6 +86,7 @@ L'application démarre sur `http://localhost:5173`
 ```bash
 cd backend
 npm test
+# 93 tests — 100% vert
 ```
 
 ---
@@ -92,16 +95,29 @@ npm test
 
 | Module | Description | Statut |
 |--------|-------------|--------|
-| 0 | Infrastructure & Base de données | 🔄 En cours |
-| 1 | Authentification JWT | ⏳ À faire |
-| 2 | Établissements & Classes | ⏳ À faire |
-| 3 | Notes & Évaluations | ⏳ À faire |
-| 4 | Absences | ⏳ À faire |
-| 5 | Appréciations | ⏳ À faire |
-| 6 | Messagerie | ⏳ À faire |
-| 7 | Profil & Administration | ⏳ À faire |
-| 8 | Dashboard agrégé | ⏳ À faire |
-| 9 | Finalisation & Documentation | ⏳ À faire |
+| 0 | Infrastructure & Base de données | ✅ |
+| 1 | Authentification JWT | ✅ |
+| 2 | Établissements & Classes | ✅ |
+| 3 | Notes & Évaluations | ✅ |
+| 4 | Absences | ✅ |
+| 5 | Appréciations | ✅ |
+| 6 | Messagerie | ✅ |
+| 7 | Profil & Administration | ✅ |
+| 8 | Dashboard agrégé | ✅ |
+| 9 | Finalisation & Documentation | ✅ |
+
+## Modules frontend
+
+| Module | Description | Statut |
+|--------|-------------|--------|
+| F0 | Setup architecture React | ✅ |
+| F1 | Authentification (Login, Splash) | ✅ |
+| F2 | Dashboard enseignant & admin | ✅ |
+| F3 | Classes & Notes | ✅ |
+| F4 | Absences (appel du jour) | ✅ |
+| F5 | Appréciations | ✅ |
+| F6 | Messagerie | ✅ |
+| F7 | Profil & Paramètres | ✅ |
 
 ---
 
@@ -109,10 +125,27 @@ npm test
 
 Tous les comptes de test utilisent le mot de passe : `noutong1`
 
-- **Proviseur** : `onana.paul@lycee-essos.edu`
-- **Enseignant Maths** : `nkomo.jeanpaul@lycee-essos.edu`
-- **Enseignant PC** : `mbida.emmanuel@lycee-essos.edu`
-- **Enseignant Français** : `fogue.nathalie@lycee-essos.edu`
+| Rôle | Email |
+|------|-------|
+| Proviseur | `onana.paul@lycee-essos.edu` |
+| Enseignant Maths | `nkomo.jeanpaul@lycee-essos.edu` |
+| Enseignant PC | `mbida.emmanuel@lycee-essos.edu` |
+| Enseignant Français | `fogue.nathalie@lycee-essos.edu` |
+| CPE | `nguele.cpe@lycee-essos.edu` |
+| Secrétariat | `zanga.secretariat@lycee-essos.edu` |
+
+---
+
+## Convention de branches
+
+| Type | Préfixe | Exemple |
+|------|---------|---------|
+| Fonctionnalité | `feature/` | `feature/frontend-auth` |
+| Correction | `fix/` | `fix/notes-calcul-moyenne` |
+| Documentation | `chore/` | `chore/docs-final` |
+| Hotfix | `hotfix/` | `hotfix/login-crash` |
+
+Branche principale : `main` — Branche de développement : `develop`
 
 ---
 
