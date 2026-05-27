@@ -1,6 +1,6 @@
 'use strict';
 
-// Charger les variables d'environnement de test
+// ── Variables d'environnement de test ────────────────────────
 process.env.NODE_ENV = 'test';
 process.env.PORT = '3002';
 process.env.DB_HOST = 'localhost';
