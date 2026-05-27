@@ -120,6 +120,16 @@ async function saisirNotes(evaluationId, notes, enseignantId) {
     throw err;
   }
 
+  // Validation préalable de toutes les notes AVANT d'ouvrir la transaction
+  // Évite un ROLLBACK partiel si une note est invalide en milieu de lot
+  for (const note of notes) {
+    if (note.valeur < 0 || note.valeur > 20) {
+      const err = new Error(`Note invalide pour l'élève ${note.eleve_id} : ${note.valeur} (doit être entre 0 et 20)`);
+      err.statusCode = 400;
+      throw err;
+    }
+  }
+
   const client = await getClient();
   try {
     await client.query('BEGIN');
@@ -128,11 +138,6 @@ async function saisirNotes(evaluationId, notes, enseignantId) {
 
     for (const note of notes) {
       const { eleve_id, valeur } = note;
-      if (valeur < 0 || valeur > 20) {
-        const err = new Error(`Note invalide pour l'élève ${eleve_id} : ${valeur} (doit être entre 0 et 20)`);
-        err.statusCode = 400;
-        throw err;
-      }
 
       const existing = await client.query(
         'SELECT id FROM notes WHERE evaluation_id = $1 AND eleve_id = $2',

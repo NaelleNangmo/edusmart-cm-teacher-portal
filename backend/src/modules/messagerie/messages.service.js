@@ -65,6 +65,8 @@ async function getMessageById(messageId, userId) {
   );
 
   if (result.rows.length === 0) {
+    // Retourne 403 intentionnellement (et non 404) pour ne pas révéler
+    // l'existence d'un message à un utilisateur non autorisé (sécurité)
     const err = new Error('Message non trouvé ou accès refusé');
     err.statusCode = 403;
     throw err;

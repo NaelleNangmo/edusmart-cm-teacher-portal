@@ -13,7 +13,7 @@ router.post(
   [
     body('email').isEmail().withMessage('Email invalide').normalizeEmail(),
     body('mot_de_passe').notEmpty().withMessage('Mot de passe requis'),
-    body('etablissement_id').isInt({ min: 1 }).withMessage('Établissement requis'),
+    body('etablissement_id').isInt({ min: 1 }).toInt().withMessage('Établissement requis'),
   ],
   validate,
   authController.login
