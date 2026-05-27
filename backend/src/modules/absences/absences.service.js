@@ -70,10 +70,17 @@ async function getAbsencesByEleve(eleveId, trimestre) {
   const params = [eleveId];
 
   if (trimestre) {
+    // Validation explicite pour éviter tout accès inattendu à l'objet moisParTrimestre
+    const trimestreInt = parseInt(trimestre, 10);
+    if (![1, 2, 3].includes(trimestreInt)) {
+      const err = new Error('Trimestre invalide (doit être 1, 2 ou 3)');
+      err.statusCode = 400;
+      throw err;
+    }
     // Filtrer par trimestre (T1: sept-déc, T2: jan-mars, T3: avr-juin)
     sql += ` AND EXTRACT(MONTH FROM a.date) = ANY($2)`;
     const moisParTrimestre = { 1: [9,10,11,12], 2: [1,2,3], 3: [4,5,6] };
-    params.push(moisParTrimestre[trimestre] || [1,2,3]);
+    params.push(moisParTrimestre[trimestreInt]);
   }
 
   sql += ' ORDER BY a.date DESC';
