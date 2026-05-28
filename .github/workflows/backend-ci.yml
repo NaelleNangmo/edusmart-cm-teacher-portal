@@ -1,0 +1,268 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+      - 'fix/**'
+      - 'hotfix/**'
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'backend/**'
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  # ── Job 1 : Lint & Vérification syntaxique ──────────────────
+  lint:
+    name: Lint & Syntax Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Vérification syntaxique Node.js
+        run: node --check src/app.js
+
+      - name: Vérification des modules
+        run: |
+          node --check src/config/db.js
+          node --check src/config/env.js
+          node --check src/middleware/auth.js
+          node --check src/middleware/errorHandler.js
+          node --check src/middleware/validate.js
+
+  # ── Job 2 : Tests unitaires (sans base de données) ──────────
+  unit-tests:
+    name: Tests Unitaires
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Lancer les tests unitaires
+        run: npm run test:unit
+        env:
+          NODE_ENV: test
+          JWT_SECRET: edusmart_jwt_secret_key_ci_2025
+          JWT_EXPIRES_IN: 7d
+
+      - name: Upload rapport de couverture unitaire
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-unit
+          path: backend/coverage/
+          retention-days: 7
+
+  # ── Job 3 : Tests d'intégration (avec PostgreSQL) ───────────
+  integration-tests:
+    name: Tests Intégration
+    runs-on: ubuntu-latest
+    needs: lint
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: noutong1
+          POSTGRES_DB: edusmartdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Attendre PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "En attente de PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL prêt ✓"
+
+      - name: Exécuter les migrations
+        run: npm run migrate
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: edusmartdb
+          DB_USERNAME: postgres
+          DB_PASSWORD: noutong1
+          JWT_SECRET: edusmart_jwt_secret_key_ci_2025
+          JWT_EXPIRES_IN: 7d
+
+      - name: Insérer les données de test (seed)
+        run: npm run seed
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: edusmartdb
+          DB_USERNAME: postgres
+          DB_PASSWORD: noutong1
+          JWT_SECRET: edusmart_jwt_secret_key_ci_2025
+          JWT_EXPIRES_IN: 7d
+
+      - name: Lancer les tests d'intégration
+        run: npm run test:integration
+        env:
+          NODE_ENV: test
+          PORT: 3001
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: edusmartdb
+          DB_USERNAME: postgres
+          DB_PASSWORD: noutong1
+          JWT_SECRET: edusmart_jwt_secret_key_ci_2025
+          JWT_EXPIRES_IN: 7d
+
+      - name: Upload rapport de couverture intégration
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-integration
+          path: backend/coverage/
+          retention-days: 7
+
+  # ── Job 4 : Rapport de couverture global ────────────────────
+  coverage:
+    name: Rapport Couverture Global
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: noutong1
+          POSTGRES_DB: edusmartdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Migration + Seed
+        run: npm run migrate && npm run seed
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: edusmartdb
+          DB_USERNAME: postgres
+          DB_PASSWORD: noutong1
+          JWT_SECRET: edusmart_jwt_secret_key_ci_2025
+          JWT_EXPIRES_IN: 7d
+
+      - name: Générer rapport de couverture complet
+        run: npm run test:coverage
+        env:
+          NODE_ENV: test
+          PORT: 3001
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: edusmartdb
+          DB_USERNAME: postgres
+          DB_PASSWORD: noutong1
+          JWT_SECRET: edusmart_jwt_secret_key_ci_2025
+          JWT_EXPIRES_IN: 7d
+
+      - name: Upload rapport HTML de couverture
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-html
+          path: backend/coverage/
+          retention-days: 30
+
+  # ── Job 5 : Vérification de sécurité des dépendances ────────
+  security:
+    name: Audit Sécurité
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Audit des dépendances npm
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Vérification des dépendances obsolètes
+        run: npm outdated || true
