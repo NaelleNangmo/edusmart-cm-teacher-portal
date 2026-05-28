@@ -16,37 +16,7 @@
     "test:watch": "jest --watch --runInBand",
     "test:verbose": "jest --verbose --runInBand --forceExit --detectOpenHandles"
   },
-  "jest": {
-    "testEnvironment": "node",
-    "testMatch": [
-      "**/tests/**/*.test.js"
-    ],
-    "testTimeout": 30000,
-    "setupFiles": [
-      "./tests/setup.js"
-    ],
-    "collectCoverageFrom": [
-      "src/**/*.js",
-      "!src/app.js"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "branches": 50,
-        "functions": 60,
-        "lines": 60,
-        "statements": 60
-      }
-    },
-    "coverageReporters": [
-      "text",
-      "text-summary",
-      "lcov",
-      "html",
-      "json-summary"
-    ],
-    "coverageDirectory": "coverage",
-    "verbose": false
-  },
+
   "keywords": [],
   "author": "NaelleNangmo",
   "license": "ISC",
